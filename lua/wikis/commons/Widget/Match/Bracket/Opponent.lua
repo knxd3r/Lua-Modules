@@ -25,7 +25,7 @@ local function BracketOpponent(props)
 		if props.showTbd ~= false or not Opponent.isTbd(opponent) then
 			return OpponentDisplay.BlockTeamContainer{
 				showLink = false,
-				style = props.forceShortName and 'short' or 'hybrid',
+				style = props.forceShortName and 'short' or 'dynamic',
 				template = opponent.template or 'tbd',
 			}
 		end
