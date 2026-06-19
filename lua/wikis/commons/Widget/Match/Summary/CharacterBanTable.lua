@@ -2,8 +2,6 @@
 -- @Liquipedia
 -- page=Module:Widget/Match/Summary/CharacterBanTable
 --
--- Please see https://github.com/Liquipedia/Lua-Modules to contribute
---
 
 local Lua = require('Module:Lua')
 
@@ -29,7 +27,7 @@ local ICONS = {
 	empty = Html.Span{},
 }
 
----@param props {bans: {[1]: string[]?, [2]: string[]?, start: integer?}[], date: string?}
+---@param props {bans: {[1]: string[]?, [2]: string[]?, start: integer?, label: string?}[], date: string?}
 ---@return VNode?
 local function MatchSummaryCharacterBanTable(props)
 	if Logic.isDeepEmpty(props.bans) then
@@ -40,9 +38,12 @@ local function MatchSummaryCharacterBanTable(props)
 		return Logic.isNotEmpty(banData.start)
 	end)
 
-	---@param teamIndex integer
-	---@param startIndex integer
-	---@return string
+	local hasGlobal = false
+
+	if props.bans[1] and props.bans[1].label == 'Global Bans' then
+		hasGlobal = true
+	end
+
 	local startIndicator = function(teamIndex, startIndex)
 		if teamIndex ~= startIndex then
 			return ICONS.empty
@@ -56,26 +57,42 @@ local function MatchSummaryCharacterBanTable(props)
 		classes = {'brkts-popup-veto-wrapper'},
 		shouldCollapse = true,
 		collapseAreaClasses = {'brkts-popup-veto'},
-		titleClasses = {'brkts-popup-veto-header'};
+		titleClasses = {'brkts-popup-veto-header'},
 		title = 'Bans',
+
 		children = Array.map(props.bans, function(banData, gameNumber)
 			if Logic.isDeepEmpty(banData) then
 				return nil
 			end
+
+			local label =
+				banData.label or
+				('Game ' .. (gameNumber - (hasGlobal and 1 or 0)))
+
 			return Div{
 				classes = {'brkts-popup-veto-row'},
 				children = WidgetUtil.collect(
-					Characters{characters = banData[1], flipped = false, date = props.date},
+					Characters{
+						characters = banData[1],
+						flipped = false,
+						date = props.date
+					},
+
 					Div{
 						classes = hasStartIndicator and {'brkts-popup-veto-row-indicator'} or nil,
 						children = WidgetUtil.collect(
 							hasStartIndicator and startIndicator(1, banData.start) or nil,
-							'Game&nbsp;' .. gameNumber,
+							label,
 							hasStartIndicator and startIndicator(2, banData.start) or nil
 						)
 					},
-					Characters{characters = banData[2], flipped = true, date = props.date}
-				),
+
+					Characters{
+						characters = banData[2],
+						flipped = true,
+						date = props.date
+					}
+				)
 			}
 		end)
 	}
