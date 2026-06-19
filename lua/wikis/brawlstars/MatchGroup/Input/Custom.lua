@@ -112,17 +112,28 @@ function MapFunctions.getExtraData(match, map, opponents)
 		firstpick = FIRST_PICK_CONVERSION[string.lower(map.firstpick or '')]
 	}
 
-	local bans = {}
-	local getCharacterName = FnUtil.curry(MatchGroupInputUtil.getCharacterName, BrawlerNames)
-	for opponentIndex = 1, #opponents do
-		bans['team' .. opponentIndex] = {}
-		for _, ban in Table.iter.pairsByPrefix(map, 't' .. opponentIndex .. 'b') do
-			ban = getCharacterName(ban)
-			table.insert(bans['team' .. opponentIndex], ban)
-		end
-	end
+local bans = {}
+local getCharacterName = FnUtil.curry(MatchGroupInputUtil.getCharacterName, BrawlerNames)
 
-	extradata.bans = bans
+for opponentIndex = 1, #opponents do
+    bans['team' .. opponentIndex] = {}
+
+    for _, ban in Table.iter.pairsByPrefix(map, 't' .. opponentIndex .. 'b') do
+        ban = getCharacterName(ban)
+        table.insert(bans['team' .. opponentIndex], ban)
+    end
+end
+
+local globalBans = {}
+
+for _, ban in Table.iter.pairsByPrefix(match, 'globalban') do
+    ban = getCharacterName(ban)
+    table.insert(globalBans, ban)
+end
+
+bans.global = globalBans
+
+extradata.bans = bans
 
 	return extradata
 end
